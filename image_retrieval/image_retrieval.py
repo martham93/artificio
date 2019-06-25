@@ -17,18 +17,22 @@ from src.CV_transform_utils import apply_transformer
 from src.CV_transform_utils import resize_img, normalize_img
 from src.CV_plot_utils import plot_query_retrieval, plot_tsne, plot_reconstructions
 from src.autoencoder import AutoEncoder
+import pickle as pkl
+import numpy as np
 
 # Run mode
 modelName = "vgg19"  # try: "simpleAE", "convAE", "vgg19"
 trainModel = True
 
 # Make paths
-dataTrainPath = os.path.join(os.getcwd(), "data", "train")
-dataTestPath = os.path.join(os.getcwd(), "data", "test")
+#dataTrainPath = os.path.join(os.getcwd(), "data", "train")
+dataTrainPath = '/Users/mmorrissey/baconator/bacon_cli1/test'
+#dataTestPath = os.path.join(os.getcwd(), "data", "test")
+dataTestPath = '/Users/mmorrissey/baconator/bacon_cli1/test_small'
 outPath = makeDir(os.path.join(os.getcwd(), "output", modelName))
 
 # Read images
-extensions = [".jpg", ".jpeg"]
+extensions = [".jpg", ".jpeg", ".tif"]
 print("Reading train images from '{}'...".format(dataTrainPath))
 imgs_train = read_imgs_dir(dataTrainPath, extensions, parallel=True)
 print("Reading test images from '{}'...".format(dataTestPath))
@@ -57,7 +61,9 @@ if modelName in ["simpleAE", "convAE"]:
     elif modelName == "convAE":
         shape_img_resize = shape_img
         input_shape_model = tuple([int(x) for x in model.encoder.input.shape[1:]])
+        print(input_shape_model)
         output_shape_model = tuple([int(x) for x in model.encoder.output.shape[1:]])
+        print(output_shape_model)
         n_epochs = 500
     else:
         raise Exception("Invalid modelName!")
@@ -145,9 +151,23 @@ knn.fit(E_train_flatten)
 print("Performing image retrieval on test images...")
 for i, emb_flatten in enumerate(E_test_flatten):
     _, indices = knn.kneighbors([emb_flatten]) # find k nearest train neighbours
-    img_query = imgs_test[i] # query image
-    imgs_retrieval = [imgs_train[idx] for idx in indices.flatten()] # retrieval images
+    img_query = imgs_test[i] # query image #write this out
     outFile = os.path.join(outPath, "{}_retrieval_{}.png".format(modelName, i))
+
+    outDir = makeDir(os.path.join(os.getcwd(), '{}_{}'.format(i, modelName)))
+    fileName = os.path.join(outDir, "testimage_{}.obj".format(i))
+    fileObject = open(fileName, 'wb')
+    pkl.dump(img_query, fileObject)
+    fileObject.close()
+
+
+    imgs_retrieval = [imgs_train[idx] for idx in indices.flatten()] # retrieval images #write these out
+    for num, x in enumerate(imgs_retrieval):
+        fileName = (os.path.join(outDir, "predictedmatch_img_{}.obj".format(num)))
+        fileObject = open(fileName, 'wb')
+        pkl.dump(x, fileObject)
+        fileObject.close()
+
     plot_query_retrieval(img_query, imgs_retrieval, outFile)
 
 # Plot t-SNE visualization

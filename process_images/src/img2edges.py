@@ -4,7 +4,7 @@ import cv2
 
 def img2edges(input_filename, output_filename):
 
-    img = skimage.io.imread(input_filename, as_gray=False)
+    img = skimage.io.imread(input_filename)
 
     # Blur the image with a Gaussian kernel
     kernel_size = (5, 5)

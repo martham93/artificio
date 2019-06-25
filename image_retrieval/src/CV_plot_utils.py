@@ -34,7 +34,7 @@ def plot_query_retrieval(img_query, imgs_retrieval, outFile):
         ax.spines[axis].set_color('black')  # set to black
     ax.set_title("query",  fontsize=14)  # set subplot title
 
-    # Plot retrieval images
+    # Plot retrieval images (modify this function for V/V)
     for i, img in enumerate(imgs_retrieval):
         ax = plt.subplot(2, n_retrieval, n_retrieval + i + 1)
         plt.imshow(img)

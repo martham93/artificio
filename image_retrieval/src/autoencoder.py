@@ -33,7 +33,8 @@ class AutoEncoder():
     # Set neural network architecture
     def set_arch(self):
 
-        shape_img = self.info["shape_img"]
+        #shape_img = self.info["shape_img"]
+        shape_img = (128, 128, 3)
         shape_img_flattened = (np.prod(list(shape_img)),)
 
         # Set encoder and decoder graphs

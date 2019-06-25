@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 # Read image
 def read_img(filePath):
-    return skimage.io.imread(filePath, as_gray=False)
+    return skimage.io.imread(filePath)
 
 # Read images with common extensions from a directory
 def read_imgs_dir(dirPath, extensions, parallel=True):

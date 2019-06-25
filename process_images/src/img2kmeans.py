@@ -7,7 +7,7 @@ def img2kmeans(input_filename, output_filename,
                k=5, use_custom_colors=None, custom_colors=None, sort=True):
 
     # Read image
-    img = skimage.io.imread(input_filename, as_gray=False)
+    img = skimage.io.imread(input_filename)
 
     img_norm = np.array(img, dtype=np.float64) / 255  # normalize r,g,b values
     w, h, d = tuple(img_norm.shape)
