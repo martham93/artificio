@@ -19,6 +19,8 @@ from src.CV_plot_utils import plot_query_retrieval, plot_tsne, plot_reconstructi
 from src.autoencoder import AutoEncoder
 import pickle as pkl
 import numpy as np
+from keras import backend as K
+import keras
 
 # Run mode
 modelName = "vgg19"  # try: "simpleAE", "convAE", "vgg19"
@@ -26,10 +28,12 @@ trainModel = True
 
 # Make paths
 #dataTrainPath = os.path.join(os.getcwd(), "data", "train")
-dataTrainPath = '/Users/mmorrissey/baconator/bacon_cli1/test'
+dataTrainPath = '/Users/mmorrissey/baconator/demo_tifs/train_small' #change
+#'/Users/mmorrissey/baconator/bacon_cli1/train_small/cls1'
 #dataTestPath = os.path.join(os.getcwd(), "data", "test")
-dataTestPath = '/Users/mmorrissey/baconator/bacon_cli1/test_small'
-outPath = makeDir(os.path.join(os.getcwd(), "output", modelName))
+dataTestPath = '/Users/mmorrissey/baconator/demo_tifs/test_small' #change
+#'/Users/mmorrissey/baconator/bacon_cli1/test_small'
+outPath = makeDir(os.path.join(os.getcwd(), "demo_model_visuals", modelName)) #change
 
 # Read images
 extensions = [".jpg", ".jpeg", ".tif"]
@@ -122,7 +126,17 @@ if modelName in ["simpleAE", "convAE"]:
 
 # Create embeddings using model
 print("Inferencing embeddings using pre-trained model...")
-E_train = model.predict(X_train)
+print("about to predict")
+train_datagen = keras.preprocessing.image.ImageDataGenerator()
+E_train = model.predict_generator(train_datagen.flow_from_directory(
+    directory= '/Users/mmorrissey/baconator/bacon_cli1/train_small/', #change
+    target_size=(256, 256),
+    color_mode="rgb",
+    batch_size=32,
+    class_mode=None,
+    shuffle=False))
+
+#E_train = model.predict(X_train)
 E_train_flatten = E_train.reshape((-1, np.prod(output_shape_model)))
 E_test = model.predict(X_test)
 E_test_flatten = E_test.reshape((-1, np.prod(output_shape_model)))
@@ -151,16 +165,20 @@ knn.fit(E_train_flatten)
 print("Performing image retrieval on test images...")
 for i, emb_flatten in enumerate(E_test_flatten):
     _, indices = knn.kneighbors([emb_flatten]) # find k nearest train neighbours
+    print(indices)
     img_query = imgs_test[i] # query image #write this out
     outFile = os.path.join(outPath, "{}_retrieval_{}.png".format(modelName, i))
 
-    outDir = makeDir(os.path.join(os.getcwd(), '{}_{}'.format(i, modelName)))
+    new_dir = 'demo_model_outputs' #change
+
+    outDir = makeDir(os.path.join(new_dir, '{}_{}'.format(i, modelName)))
     fileName = os.path.join(outDir, "testimage_{}.obj".format(i))
     fileObject = open(fileName, 'wb')
     pkl.dump(img_query, fileObject)
     fileObject.close()
 
-
+    print(len(imgs_train))
+    print(indices)
     imgs_retrieval = [imgs_train[idx] for idx in indices.flatten()] # retrieval images #write these out
     for num, x in enumerate(imgs_retrieval):
         fileName = (os.path.join(outDir, "predictedmatch_img_{}.obj".format(num)))
@@ -170,6 +188,12 @@ for i, emb_flatten in enumerate(E_test_flatten):
 
     plot_query_retrieval(img_query, imgs_retrieval, outFile)
 
+
+#write out model weights to H5
+if modelName == 'vgg19':
+    model.save('vgg19_demo_model_weights.h5') #change
+else:
+    print('not writing out model weights.')
 # Plot t-SNE visualization
 print("Visualizing t-SNE on training images...")
 outFile = os.path.join(outPath, "{}_tsne.png".format(modelName))
